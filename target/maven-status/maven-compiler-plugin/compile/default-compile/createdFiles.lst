@@ -1,1 +1,2 @@
-com\bcm\app\sendsms\App.class
+com\bcm\app\sendsms\ScheduledTasks.class
+com\bcm\app\sendsms\Application.class
