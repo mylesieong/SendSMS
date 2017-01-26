@@ -1,10 +1,12 @@
 package com.bcm.app.sendsms;
 
 import java.text.SimpleDateFormat;
+
 import java.util.Date;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +15,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
+
+import java.sql.*;
+
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
 
@@ -61,7 +66,6 @@ public class ScheduledTasks {
             input = new FileInputStream(workingDirectory + "\\test.txt");
             ftpClient.appendFile("test_upload", input);
             input.close();
-            
             /* /Upload the test.txt at SendSMS folder */
  
             showServerReply(ftpClient);
@@ -75,6 +79,9 @@ public class ScheduledTasks {
             System.out.println("Oops! Something wrong happened");
             e.printStackTrace();
         }
+        
+        /* Database manipulation */
+        insertDummy("Dummy_data");
     }
 
     /* Add new task template
@@ -92,4 +99,29 @@ public class ScheduledTasks {
             }
         }
     }
+    
+    private void insertDummy(String dummy){
+        Connection c = null;
+        Statement stmt = null;
+        try {
+            Class.forName("org.sqlite.JDBC");
+            c = DriverManager.getConnection("jdbc:sqlite:test.db");
+            c.setAutoCommit(false);
+            System.out.println("Opened database successfully");
+
+            stmt = c.createStatement();
+            String sql = "INSERT INTO TABLES1 (DATA) " +
+                   "VALUES ('" + dummy + "');"; 
+            stmt.executeUpdate(sql);
+
+            stmt.close();
+            c.commit();
+            c.close();
+        } catch (Exception e) {
+            System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+            System.exit(0);
+        }
+        System.out.println("Opened database successfully");
+    }
+    
 }
