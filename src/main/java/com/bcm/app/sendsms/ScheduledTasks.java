@@ -21,107 +21,91 @@ import java.sql.*;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
 
+import java.io.File;
+
 @Component
 public class ScheduledTasks {
 
     private static final Logger log = LoggerFactory.getLogger(ScheduledTasks.class);
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-
-    @Scheduled(fixedRate = 60000)
-    public void reportCurrentTime60000() {
-        log.info("(Interval-60)The time is now {}", dateFormat.format(new Date()));
-        /* Begin the ftp ops*/
-        String server = "172.18.255.108";
-        int port = 21;
-        String user = "itoper";
-        String pass = "IToper01";
-        FTPClient ftpClient = new FTPClient();
-        try {
-            ftpClient.connect(server, port);
-            showServerReply(ftpClient);
-            int replyCode = ftpClient.getReplyCode();
-            if (!FTPReply.isPositiveCompletion(replyCode)) {
-                System.out.println("Operation failed. Server reply code: " + replyCode);
-                return ;
-            }
-            boolean success = ftpClient.login(user, pass);
-            /* Download the fileA.txt and SWIFT/fileB.txt */
-            String workingDirectory = System.getProperty("user.dir");
-            OutputStream output;
-            
-            output = new FileOutputStream(workingDirectory + "\\fileA_local.txt");
-            ftpClient.retrieveFile("fileA.txt", output);
-            output.close();
-            
-            output = new FileOutputStream(workingDirectory + "\\fileB_local.txt");
-            ftpClient.changeWorkingDirectory("SWIFT");
-            ftpClient.retrieveFile("fileB.txt", output);
-            
-            output.close();
-            /*/Download the fileA.txt and SWIFT/fileB.txt */
-            
-            /* Upload the test.txt at SendSMS folder */
-            InputStream input;
-            input = new FileInputStream(workingDirectory + "\\test.txt");
-            ftpClient.appendFile("test_upload", input);
-            input.close();
-            /* /Upload the test.txt at SendSMS folder */
- 
-            showServerReply(ftpClient);
-            if (!success) {
-                System.out.println("Could not login to the server");
-                return ;
-            } else {
-                System.out.println("LOGGED IN SERVER");
-            }
-        } catch (IOException e) {
-            System.out.println("Oops! Something wrong happened");
-            e.printStackTrace();
-        }
-        
-        /* Database manipulation */
-        insertDummy("Dummy_data");
-    }
-
-    /* Add new task template
-    @Scheduled(fixedRate = 2000)
-    public void reportCurrentTime2000() {
-        log.info("(Interval-2)The time is now {}", dateFormat.format(new Date()));
-    }
-    */
-
-    private void showServerReply(FTPClient ftpClient) {
-        String[] replies = ftpClient.getReplyStrings();
-        if (replies != null && replies.length > 0) {
-            for (String aReply : replies) {
-                System.out.println("SERVER: " + aReply);
-            }
-        }
-    }
     
-    private void insertDummy(String dummy){
-        Connection c = null;
-        Statement stmt = null;
+    /* Static properties
+     */
+    private static final String FTP_ADDRESS = "172.18.255.108";
+    private static final int FTP_PORT = 21;
+    private static final String FTP_USER = "itoper";
+    private static final String FTP_PASSWORD = "IToper01";
+    private static final String FTP_FOLDER = "out";
+    private static final String SMS_FILE = "C:\\smsfile\\*.msg";
+    private static final String SMS_FOLDER = "C:\\smsfile";
+    private static final String BKUP_FOLDER = "C:\\smssend";
+    private static final String CUR_DIR = System.getProperty("user.dir");
+    private static final String INMSG = "inmsg.txt";
+    private static final String OUTMSG = "outmsg.txt";
+    
+    @Scheduled(fixedRate = 10000)
+    public void reportCurrentTime10000() {
+        log.info("(Interval-10)The time is now {}", dateFormat.format(new Date()));
         try {
-            Class.forName("org.sqlite.JDBC");
-            c = DriverManager.getConnection("jdbc:sqlite:test.db");
-            c.setAutoCommit(false);
-            System.out.println("Opened database successfully");
-
-            stmt = c.createStatement();
-            String sql = "INSERT INTO TABLES1 (DATA) " +
-                   "VALUES ('" + dummy + "');"; 
-            stmt.executeUpdate(sql);
-
-            stmt.close();
-            c.commit();
-            c.close();
-        } catch (Exception e) {
+            boolean foundMessage = this.retreiveAllSMSFile();
+            this.convertMessage();
+            if (foundMessage){
+                this.ftpSMSFile();
+                this.backupFile();
+            }
+        } catch (Exception e){
             System.err.println( e.getClass().getName() + ": " + e.getMessage() );
             System.exit(0);
         }
-        System.out.println("Opened database successfully");
     }
     
+    /* Register found message in directory under monitoring
+     * @return: Y/N found message or not
+     */
+    private boolean retreiveAllSMSFile() throws Exception {
+        File pendingDirectory = new File(SMS_FOLDER);
+        String[] nameOfPendingFiles = pendingDirectory.list();
+        
+        Connection c = null;
+        Statement stmt = null;
+        Class.forName("org.sqlite.JDBC");
+        c = DriverManager.getConnection("jdbc:sqlite:sms.db");
+        c.setAutoCommit(false);
+        System.out.println("Opened database successfully");
+
+        stmt = c.createStatement();
+        for (int i = 0; i<nameOfPendingFiles.length; i++){
+            String sql = "INSERT INTO SEND_FILE (sendfile, sendflag) " +
+                   "VALUES ('" + nameOfPendingFiles[i] + "', ' ');"; 
+            stmt.executeUpdate(sql);
+        }
+        stmt.close();
+        c.commit();
+        c.close();
+        
+        return true;
+        
+    }
+     
+    /* convert the message
+     * @return: void
+     */
+    private void convertMessage(){
+         System.out.println("to be implemented: convertMessage()");
+    }
+    
+    /* Upload file according to database and update record flags
+     * @return: void
+     */
+    private void ftpSMSFile(){
+         
+    }
+        
+    /* Move the sent files from pending directory to backup directory
+     * @return: void
+     */
+    private void backupFile(){
+         
+    }
 }
