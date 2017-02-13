@@ -1,3 +1,0 @@
-File A
-Content1
-Content2
