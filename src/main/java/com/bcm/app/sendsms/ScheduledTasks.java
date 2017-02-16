@@ -3,6 +3,8 @@ package com.bcm.app.sendsms;
 import java.text.SimpleDateFormat;
 
 import java.util.Date;
+import java.text.*;
+
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -123,27 +125,23 @@ public class ScheduledTasks {
         boolean success = ftpClient.login(FTP_USER, FTP_PASSWORD);
         
         if (success){            
+            System.out.println("Login successfully");
             while(rs.next()){
                 String fileName = rs.getString("sendfile");
                 String sendFlag = rs.getString("sendflag");
-                if (sendFlag.equalsIgnoreCase("N")){
-                    /* Download the fileA.txt and SWIFT/fileB.txt */
-                    String workingDirectory = System.getProperty("user.dir");
-                    OutputStream output = new FileOutputStream(workingDirectory + "\\fileB_local.txt");
-                    ftpClient.changeWorkingDirectory("SWIFT");
-                    ftpClient.retrieveFile("fileB.txt", output);
-                    output.close();
-
+                if (sendFlag.equalsIgnoreCase(" ")){
                     /* Upload the test.txt at SendSMS folder */
-                    InputStream input;
-                    input = new FileInputStream(workingDirectory + "\\test.txt");
-                    ftpClient.appendFile("test_upload", input);
+                    InputStream input = new FileInputStream(SMS_FOLDER + "\\" + fileName);  //fileName includes filetype
+                    ftpClient.changeWorkingDirectory("Test");
+                    ftpClient.appendFile(fileName, input);
                     input.close();
-
                 }
             }
         }
 
+        /* Update the flag from empty to Y/N */
+        /* code to be added */
+        
         rs.close();
         stmt.close();
         c.commit();
@@ -152,9 +150,49 @@ public class ScheduledTasks {
     }
         
     /* Move the sent files from pending directory to backup directory
+     * 1. Check if date subfolder under smssend folder exist or created it
+     * 2. Loop table, if cannot found backup in smssend/yyyymmdd and send flag Y, move the file
      * @return: void
      */
-    private void backupFile(){
-         System.out.println("In backupFile method");
+    private void backupFile() throws Exception{
+        /* Create the subfolder for backup for today*/
+        Date date = new Date();
+        SimpleDateFormat ft = new SimpleDateFormat ("yyyyMMdd");
+        File currentDateBackupFolder = new File(BKUP_FOLDER + "\\" + ft.format(date));
+        if (!currentDateBackupFolder.exists()){
+            currentDateBackupFolder.mkdirs();
+        }
+        /* Move the files to backup folder */
+        Connection c = null;
+        Statement stmt = null;
+        Class.forName("org.sqlite.JDBC");
+        c = DriverManager.getConnection("jdbc:sqlite:sms.db");
+        c.setAutoCommit(false);
+        System.out.println("Opened database for query successfully(backup)");
+
+        stmt = c.createStatement();
+        String sql = "SELECT sendfile, sendflag FROM SEND_FILE;"; 
+        ResultSet rs = stmt.executeQuery(sql);
+
+        while(rs.next()){
+            String fileName = rs.getString("sendfile");
+            String sendFlag = rs.getString("sendflag");
+            //if (!sendFlag.equalsIgnoreCase(" ")){
+            /*dev*/if (sendFlag.equalsIgnoreCase(" ")){
+                /* Move operation */
+                File afile = new File(SMS_FOLDER + "\\" + fileName);  //fileName includes filetype
+                boolean isMoved = afile.renameTo(new File(BKUP_FOLDER + "\\" + ft.format(date) + "\\" + fileName)); 
+                if(isMoved){
+                    System.out.println("File is moved successful!");
+                }else{
+                    System.out.println("File is failed to move!");
+                }
+            }
+        }
+       
+        rs.close();
+        stmt.close();
+        c.commit();
+        c.close();
     }
 }
