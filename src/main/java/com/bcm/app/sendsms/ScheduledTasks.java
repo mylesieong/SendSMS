@@ -72,14 +72,16 @@ public class ScheduledTasks {
         Class.forName("org.sqlite.JDBC");
         c = DriverManager.getConnection("jdbc:sqlite:sms.db");
         c.setAutoCommit(false);
-        System.out.println("Opened database successfully");
+        System.out.println("Opened database for insertion successfully");
 
         stmt = c.createStatement();
         for (int i = 0; i<nameOfPendingFiles.length; i++){
+            System.out.println("Insert File #" + i + " to database...");
             String sql = "INSERT INTO SEND_FILE (sendfile, sendflag) " +
                    "VALUES ('" + nameOfPendingFiles[i] + "', ' ');"; 
             stmt.executeUpdate(sql);
         }
+        System.out.println("Finished Insertion");
         stmt.close();
         c.commit();
         c.close();
@@ -104,80 +106,55 @@ public class ScheduledTasks {
         Class.forName("org.sqlite.JDBC");
         c = DriverManager.getConnection("jdbc:sqlite:sms.db");
         c.setAutoCommit(false);
-        System.out.println("Opened database successfully");
+        System.out.println("Opened database for query successfully");
 
         stmt = c.createStatement();
         String sql = "SELECT sendfile, sendflag FROM SEND_FILE;"; 
         ResultSet rs = stmt.executeQuery(sql);
 
-String server = "172.18.255.108";
-int port = 21;
-FTPClient ftpClient = new FTPClient();
-if (success){            
-while(rs.next()){
-String fileName = rs.getString("sendfile");
-String sendFlag = rs.getString("sendflag");
-if (sendFlag.equalsIgnoreCase("N")){
-/* Begin the ftp ops*/
-try {
-ftpClient.connect(server, port);
-showServerReply(ftpClient);
-int replyCode = ftpClient.getReplyCode();
-if (!FTPReply.isPositiveCompletion(replyCode)) {
-System.out.println("Operation failed. Server reply code: " + replyCode);
-return ;
-}
-boolean success = ftpClient.login(FTP_USER, pass);
-/* Download the fileA.txt and SWIFT/fileB.txt */
-String workingDirectory = System.getProperty("user.dir");
-OutputStream output;
+        /* Start the ftp service*/
+        FTPClient ftpClient = new FTPClient();
+        ftpClient.connect(FTP_ADDRESS, FTP_PORT);
+        int replyCode = ftpClient.getReplyCode();
+        if (!FTPReply.isPositiveCompletion(replyCode)) {
+            System.out.println("Operation failed. Server reply code: " + replyCode);
+            return ;
+        }
+        boolean success = ftpClient.login(FTP_USER, FTP_PASSWORD);
+        
+        if (success){            
+            while(rs.next()){
+                String fileName = rs.getString("sendfile");
+                String sendFlag = rs.getString("sendflag");
+                if (sendFlag.equalsIgnoreCase("N")){
+                    /* Download the fileA.txt and SWIFT/fileB.txt */
+                    String workingDirectory = System.getProperty("user.dir");
+                    OutputStream output = new FileOutputStream(workingDirectory + "\\fileB_local.txt");
+                    ftpClient.changeWorkingDirectory("SWIFT");
+                    ftpClient.retrieveFile("fileB.txt", output);
+                    output.close();
 
-output = new FileOutputStream(workingDirectory + "\\fileA_local.txt");
-ftpClient.retrieveFile("fileA.txt", output);
-output.close();
+                    /* Upload the test.txt at SendSMS folder */
+                    InputStream input;
+                    input = new FileInputStream(workingDirectory + "\\test.txt");
+                    ftpClient.appendFile("test_upload", input);
+                    input.close();
 
-output = new FileOutputStream(workingDirectory + "\\fileB_local.txt");
-ftpClient.changeWorkingDirectory("SWIFT");
-ftpClient.retrieveFile("fileB.txt", output);
-
-output.close();
-/*/Download the fileA.txt and SWIFT/fileB.txt */
-
-/* Upload the test.txt at SendSMS folder */
-InputStream input;
-input = new FileInputStream(workingDirectory + "\\test.txt");
-ftpClient.appendFile("test_upload", input);
-input.close();
-
-/* /Upload the test.txt at SendSMS folder */
-
-showServerReply(ftpClient);
-if (!success) {
-System.out.println("Could not login to the server");
-return ;
-} else {
-System.out.println("LOGGED IN SERVER");
-}
-} catch (IOException e) {
-System.out.println("Oops! Something wrong happened");
-e.printStackTrace();
-}
-}
-/* should add logic to upload the files and record the result 
-* so that later we can update the table */
-}
-}
+                }
+            }
+        }
 
         rs.close();
         stmt.close();
         c.commit();
         c.close();
+        ftpClient.disconnect();
     }
         
     /* Move the sent files from pending directory to backup directory
      * @return: void
      */
     private void backupFile(){
-         
+         System.out.println("In backupFile method");
     }
 }
