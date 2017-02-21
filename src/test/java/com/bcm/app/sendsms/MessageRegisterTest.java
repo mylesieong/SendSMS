@@ -1,13 +1,17 @@
 package com.bcm.app.sendsms;
 
 import static org.junit.Assert.assertEquals;
-
 import org.junit.*;
 
-/**
- * Unit test for simple App.
- */
-public class AppTest{
+public class MessageRegisterTest{
+
+    private FileManipulator messageRegister;
+    
+    public MessageRegisterTest(){
+        super();
+        messageRegister =  new MessageRegister();
+    }
+    
     @Before 
     public void preparationOfEveryTest(){
         System.out.println("Pre-action before each test.");
