@@ -1,7 +1,4 @@
-com\bcm\app\sendsms\MessageBackuper.class
-com\bcm\app\sendsms\ScheduledTasks.class
-com\bcm\app\sendsms\MessageConvertor.class
-com\bcm\app\sendsms\MessageRegister.class
 com\bcm\app\sendsms\Application.class
-com\bcm\app\sendsms\MessageUploader.class
+com\bcm\app\sendsms\ScheduledTasks.class
 com\bcm\app\sendsms\FileManipulator.class
+com\bcm\app\sendsms\MessageRegister.class
