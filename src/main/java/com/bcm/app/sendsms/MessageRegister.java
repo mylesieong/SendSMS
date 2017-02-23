@@ -10,6 +10,7 @@ public class MessageRegister implements FileManipulator{
     @Override
     public void setFile(File file){
         this.mFile = file;
+        this.mIsSuccess = false;
     };
 
     @Override

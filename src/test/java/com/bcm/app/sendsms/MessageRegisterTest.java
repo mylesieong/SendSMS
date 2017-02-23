@@ -47,7 +47,7 @@ public class MessageRegisterTest{
     }
     
     @Test 
-    public void testFailAfterManipulateWithExistingFile(){
+    public void testSuccessAfterManipulateWithExistingFile(){
         try{
             String path = System.getProperty("user.dir");
             File f = new File(path + "\\test.txt");
@@ -62,4 +62,30 @@ public class MessageRegisterTest{
             e.printStackTrace();
         }
     }
+    
+    @Test 
+    public void testIsSuccessResetWhenSetExistingFileThenSetNonExistingFile(){
+        try{
+            String path = System.getProperty("user.dir");
+            File f1 = new File(path + "\\test1.txt");
+            if(!f1.exists()){
+                f1.createNewFile();
+            }
+            File f2 = new File(path + "\\test2.txt");
+            if(f2.exists()){
+                f2.delete();
+            }
+            messageRegister.setFile(f1);        
+            messageRegister.manipulate();
+            boolean firstTimeStatus = messageRegister.isSuccess();
+            messageRegister.setFile(f2);        
+            boolean secondTimeStatus = messageRegister.isSuccess();
+            assertEquals(firstTimeStatus && !secondTimeStatus, true);
+            f1.delete();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+    
+   
 }
