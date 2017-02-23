@@ -1,4 +1,0 @@
-com\bcm\app\sendsms\Application.class
-com\bcm\app\sendsms\ScheduledTasks.class
-com\bcm\app\sendsms\FileManipulator.class
-com\bcm\app\sendsms\MessageRegister.class

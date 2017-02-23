@@ -57,6 +57,7 @@ public class MessageRegisterTest{
             messageRegister.setFile(f);        
             messageRegister.manipulate();
             assertEquals(messageRegister.isSuccess(), true);
+            f.delete();
         }catch (Exception e){
             e.printStackTrace();
         }
