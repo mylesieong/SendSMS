@@ -19,6 +19,7 @@ public class MessageRegisterTest{
     public void testGetFileEmpty() {
         assertEquals(messageRegister.getFile(), null);
     }
+   
     
     @Test
     public void testGetFile() {
