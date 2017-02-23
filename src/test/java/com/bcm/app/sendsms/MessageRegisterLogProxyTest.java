@@ -22,6 +22,16 @@ public class MessageRegisterLogProxyTest{
     public void testGetFileEmpty() {
         assertEquals(messageRegisterLogProxy.getFile(), null);
     }
+        
+    @Test 
+    public void testSetNullFile(){
+        try{
+            messageRegisterLogProxy.setFile(null);
+            assertEquals(true, true);  //Exception test: shd not throws exception
+        }catch(Exception e ){
+            assertEquals(true, false);  //Exception test
+        }
+    }
     
     @Test
     public void testGetFile() {

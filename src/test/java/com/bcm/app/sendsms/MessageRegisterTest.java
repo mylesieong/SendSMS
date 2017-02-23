@@ -20,6 +20,15 @@ public class MessageRegisterTest{
         assertEquals(messageRegister.getFile(), null);
     }
    
+    @Test 
+    public void testSetNullFile(){
+        try{
+            messageRegister.setFile(null);
+            assertEquals(true, true);  //Exception test: shd not throws exception
+        }catch(Exception e ){
+            assertEquals(true, false);  //Exception test
+        }
+    }
     
     @Test
     public void testGetFile() {
