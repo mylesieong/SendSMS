@@ -1,6 +1,8 @@
 package com.bcm.app.sendsms;
 
-import java.io.File;
+import java.io.*;
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPReply;
 
 public class MessageFtpUploader implements FileManipulator{
     
@@ -33,6 +35,26 @@ public class MessageFtpUploader implements FileManipulator{
         this.mFtpFolder = folder;
     }
     
+    public String getFtpAddress(){
+        return this.mFtpAddress;
+    }
+    
+    public int getFtpPort(){
+        return this.mFtpPort;
+    }
+    
+    public String getFtpUser(){
+        return this.mFtpUser;
+    }
+    
+    public String getFtpPassword(){
+        return this.mFtpPassword;
+    }
+    
+    public String getFtpFolder(){
+        return this.mFtpFolder;
+    }
+    
     /* --- interface override ---*/
     @Override
     public void setFile(File file){
@@ -51,11 +73,67 @@ public class MessageFtpUploader implements FileManipulator{
      */
     @Override
     public void manipulate(){
-
+        //if (!this.verifySetting()){
+        //    return;
+        //}
+        try{
+            this.mIsSuccess = false;
+            
+            FTPClient ftpClient = new FTPClient();
+            ftpClient.connect(this.getFtpAddress(), this.getFtpPort());
+            int replyCode = ftpClient.getReplyCode();
+            if (!FTPReply.isPositiveCompletion(replyCode)) {
+                System.out.println("Operation failed. Server reply code: " + replyCode);
+                this.mIsSuccess = false;
+                return ;
+            }
+            boolean success = ftpClient.login(this.getFtpUser(), this.getFtpPassword());
+            if (!success){            
+                System.out.println("Wrong ftp settings, test skiped.");
+                this.mIsSuccess = false;
+                return ;
+            }
+            ftpClient.changeWorkingDirectory(this.getFtpFolder());
+            if (!FTPReply.isPositiveCompletion(replyCode)){
+                System.out.println("Cannot find target ftp folder, test skipped. ");
+                this.mIsSuccess = false;
+                return ; 
+            }
+            InputStream input = new FileInputStream(this.getFile());  //fileName includes filetype
+            ftpClient.appendFile(this.getFile().getName(), input);
+            input.close();
+            ftpClient.disconnect();
+            this.mIsSuccess = true;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     @Override
     public boolean isSuccess(){
         return mIsSuccess;
     }   
+    
+    private boolean verifySetting(){
+        if (this.getFtpAddress() == null){
+            System.out.println("Ftp address empty.");
+            return false;
+        }
+                
+        if (this.getFtpUser() == null){
+            System.out.println("Ftp user empty.");
+            return false;
+        }
+
+        if (this.getFtpPassword() == null){
+            System.out.println("Ftp password empty.");
+            return false;
+        }
+
+        if (this.getFtpFolder() == null){
+            System.out.println("Ftp target folder empty.");
+            return false;
+        }
+        return true;
+    }
 }
