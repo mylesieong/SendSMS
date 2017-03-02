@@ -87,28 +87,34 @@ public class MessageFtpUploaderTest{
             fop.write(fileContent.getBytes());
             fop.flush();
             fop.close();
+            
             /* Ensure the absence of file on ftp */
-            InputStream fip;
-            fip = ftpClient.retrieveFileStream(f.getName());
-            if (fip != null ){
-                ftpClient.deleteFile(f.getName());
-            }
+            ftpClient.deleteFile(f.getName());
+
             /* Perform the upload*/
             messageFtpUploader.setFile(f);
             messageFtpUploader.manipulate();
+
             /* Verify the presence of file on ftp */
+            InputStream fip;
             fip = ftpClient.retrieveFileStream(f.getName());
             assertEquals(true, fip != null ); //if the file is uploaded, fip should not be null
+
+            /* delete remote test file*/
+            ftpClient.deleteFile(f.getName());
+
+            /* delete local test file*/
+            if (f.exists()){    
+                f.delete();
+            }
         }catch (Exception e){
             e.printStackTrace();
         }finally{
             try {
-                /* delete local test file*/
-                if (f.exists()){    
-                    f.delete();
+                if (ftpClient.isConnected()) {
+                    ftpClient.logout();
+                    ftpClient.disconnect();
                 }
-                /* delete remote test file*/
-                ftpClient.disconnect();
             }catch(Exception e){
                 e.printStackTrace();
             }

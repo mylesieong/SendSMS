@@ -73,9 +73,6 @@ public class MessageFtpUploader implements FileManipulator{
      */
     @Override
     public void manipulate(){
-        //if (!this.verifySetting()){
-        //    return;
-        //}
         try{
             this.mIsSuccess = false;
             
@@ -102,6 +99,7 @@ public class MessageFtpUploader implements FileManipulator{
             InputStream input = new FileInputStream(this.getFile());  //fileName includes filetype
             ftpClient.appendFile(this.getFile().getName(), input);
             input.close();
+            ftpClient.logout();
             ftpClient.disconnect();
             this.mIsSuccess = true;
         }catch (Exception e){
