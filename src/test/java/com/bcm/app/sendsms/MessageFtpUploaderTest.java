@@ -121,5 +121,209 @@ public class MessageFtpUploaderTest{
         }
     }
     
+    @Test
+    public void testCorrectInputReturnTrue(){
+        File f = new File("testCorrectInputReturnTrue.txt");
+        FTPClient ftpClient = new FTPClient();
+        try{
+            /* Prepare FTP connection */
+            ftpClient.connect(FTP_ADDRESS, FTP_PORT);
+            int replyCode = ftpClient.getReplyCode();
+            if (!FTPReply.isPositiveCompletion(replyCode)) {
+                System.out.println("Operation failed. Server reply code: " + replyCode);
+                return ;
+            }
+            boolean success = ftpClient.login(FTP_USER, FTP_PASSWORD);
+            if (!success){            
+                System.out.println("Wrong ftp settings, test skiped.");
+                return ;
+            }
+            ftpClient.changeWorkingDirectory(FTP_FOLDER);
+            if (!FTPReply.isPositiveCompletion(replyCode)){
+                System.out.println("Cannot find target ftp folder, test skipped. ");
+                return ; 
+            }
+            /* Prepare the to-be-uploaded file*/
+            OutputStream fop = new FileOutputStream(f);
+            String fileContent = "testCorrectInputReturnTrue content";
+            if (!f.exists()){    
+                f.createNewFile();
+            }
+            fop.write(fileContent.getBytes());
+            fop.flush();
+            fop.close();
+            
+            /* Ensure the absence of file on ftp */
+            ftpClient.deleteFile(f.getName());
+
+            /* Perform the upload*/
+            messageFtpUploader.setFile(f);
+            messageFtpUploader.manipulate();
+
+            /* Verify the return status */
+            assertEquals(true, messageFtpUploader.isSuccess()); //if the file is uploaded, fip should not be null
+
+            /* delete remote test file*/
+            ftpClient.deleteFile(f.getName());
+
+            /* delete local test file*/
+            if (f.exists()){    
+                f.delete();
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }finally{
+            try {
+                if (ftpClient.isConnected()) {
+                    ftpClient.logout();
+                    ftpClient.disconnect();
+                }
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+        }
+    }
    
+    @Test
+    public void testWrongSettingReturnFalse(){
+        File f = new File("testWrongSettingReturnFalse.txt");
+        FTPClient ftpClient = new FTPClient();
+        try{
+            /* Prepare FTP connection */
+            ftpClient.connect(FTP_ADDRESS, FTP_PORT);
+            int replyCode = ftpClient.getReplyCode();
+            if (!FTPReply.isPositiveCompletion(replyCode)) {
+                System.out.println("Operation failed. Server reply code: " + replyCode);
+                return ;
+            }
+            boolean success = ftpClient.login(FTP_USER, FTP_PASSWORD);
+            if (!success){            
+                System.out.println("Wrong ftp settings, test skiped.");
+                return ;
+            }
+            ftpClient.changeWorkingDirectory(FTP_FOLDER);
+            if (!FTPReply.isPositiveCompletion(replyCode)){
+                System.out.println("Cannot find target ftp folder, test skipped. ");
+                return ; 
+            }
+            /* Prepare the to-be-uploaded file*/
+            OutputStream fop = new FileOutputStream(f);
+            String fileContent = "testWrongSettingReturnFalse content";
+            if (!f.exists()){    
+                f.createNewFile();
+            }
+            fop.write(fileContent.getBytes());
+            fop.flush();
+            fop.close();
+            
+            /* Ensure the absence of file on ftp */
+            ftpClient.deleteFile(f.getName());
+
+            /* Perform the upload*/
+            messageFtpUploader.setFile(f);
+            messageFtpUploader.setFtpPassword("wrong_pwd");
+            messageFtpUploader.manipulate();
+
+            /* Verify the return status */
+            assertEquals(false, messageFtpUploader.isSuccess()); //if the file is uploaded, fip should not be null
+
+            /* delete remote test file*/
+            ftpClient.deleteFile(f.getName());
+
+            /* delete local test file*/
+            if (f.exists()){    
+                f.delete();
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }finally{
+            try {
+                if (ftpClient.isConnected()) {
+                    ftpClient.logout();
+                    ftpClient.disconnect();
+                }
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Test
+    public void testNonExistFileReturnFalse(){
+        File f = new File("testNonExistFileReturnFalse.txt");
+        FTPClient ftpClient = new FTPClient();
+        try{
+            /* Prepare FTP connection */
+            ftpClient.connect(FTP_ADDRESS, FTP_PORT);
+            int replyCode = ftpClient.getReplyCode();
+            if (!FTPReply.isPositiveCompletion(replyCode)) {
+                System.out.println("Operation failed. Server reply code: " + replyCode);
+                return ;
+            }
+            boolean success = ftpClient.login(FTP_USER, FTP_PASSWORD);
+            if (!success){            
+                System.out.println("Wrong ftp settings, test skiped.");
+                return ;
+            }
+            ftpClient.changeWorkingDirectory(FTP_FOLDER);
+            if (!FTPReply.isPositiveCompletion(replyCode)){
+                System.out.println("Cannot find target ftp folder, test skipped. ");
+                return ; 
+            }
+            /* Ensure the absence of the to-be-uploaded file*/
+            if (f.exists()){    
+                f.delete();
+            }
+            
+            /* Ensure the absence of file on ftp */
+            ftpClient.deleteFile(f.getName());
+
+            /* Perform the upload*/
+            messageFtpUploader.setFile(f);
+            messageFtpUploader.manipulate();
+
+            /* Verify the return status */
+            assertEquals(false, messageFtpUploader.isSuccess()); //if the file is uploaded, fip should not be null
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }finally{
+            try {
+                if (ftpClient.isConnected()) {
+                    ftpClient.logout();
+                    ftpClient.disconnect();
+                }
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+        }
+    }
+
+    // @Test
+    public void testFtpExistFileReplacement(){
+        File f = new File("testFtpExistFileReplacement.txt");
+        FTPClient ftpClient = new FTPClient();
+        try{
+            /* Create and Upload file with content A to FTP */
+           
+            /* Change file content to content B and inject to FileManipulator */
+            
+            /* Invoke manipulation */
+            
+            /* If success, check the ftp file content, it should be the content B */
+        
+        
+        }catch (Exception e){
+            e.printStackTrace();
+        }finally{
+            try {
+                if (ftpClient.isConnected()) {
+                    ftpClient.logout();
+                    ftpClient.disconnect();
+                }
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+        }
+    }
 }
