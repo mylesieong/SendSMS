@@ -111,27 +111,5 @@ public class MessageFtpUploader implements FileManipulator{
     public boolean isSuccess(){
         return mIsSuccess;
     }   
-    
-    private boolean verifySetting(){
-        if (this.getFtpAddress() == null){
-            System.out.println("Ftp address empty.");
-            return false;
-        }
-                
-        if (this.getFtpUser() == null){
-            System.out.println("Ftp user empty.");
-            return false;
-        }
 
-        if (this.getFtpPassword() == null){
-            System.out.println("Ftp password empty.");
-            return false;
-        }
-
-        if (this.getFtpFolder() == null){
-            System.out.println("Ftp target folder empty.");
-            return false;
-        }
-        return true;
-    }
 }
