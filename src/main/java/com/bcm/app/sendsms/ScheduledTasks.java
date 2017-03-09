@@ -3,10 +3,12 @@ package com.bcm.app.sendsms;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import org.apache.log4j.Logger;
+
 @Component
 public class ScheduledTasks {
 
-    private static final Logger log = LoggerFactory.getLogger(ScheduledTasks.class);
+    private static final Logger mLogger = Logger.getLogger(ScheduledTasks.class);
 
     private static final String FTP_ADDRESS = "172.18.255.108";
     private static final int FTP_PORT = 21;
