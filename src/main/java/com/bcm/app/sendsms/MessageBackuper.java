@@ -2,13 +2,14 @@ package com.bcm.app.sendsms;
 
 import java.io.File;
 
-import org.joda.time.Instant;
-import org.joda.time.LocalDate;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import java.util.Locale;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 
 /**
  * Class MessageBackuper will copy input file and paste to a backup folder path
@@ -54,12 +55,15 @@ public class MessageBackuper implements FileManipulator{
                 /* get current date and time*/
                 DateTime datetime = new DateTime();
                 DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMddHHmmss");
-                // System.out.println(datetime.toString(fmt));
                 
-                f.createNewFile();
-                File f = new File("backup\\testBackupCapability20170306130001.txt");
-                if (!f.exists()){    
-                }
+                String fileName = FilenameUtils.getBaseName(this.getFile().toString());
+                String fileExtension = FilenameUtils.getExtension(this.getFile().toString());
+                
+                File backupFile = new File(this.getPath() + "\\" + fileName + datetime.toString(fmt) + "." + fileExtension);
+                backupFile.createNewFile();
+                
+                FileUtils.copyFile(this.getFile(), backupFile);
+                
                 this.mIsSuccess = true;
             }else{
                 this.mIsSuccess = false;

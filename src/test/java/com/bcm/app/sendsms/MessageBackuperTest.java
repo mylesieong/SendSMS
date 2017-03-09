@@ -13,6 +13,12 @@ import java.io.FileInputStream;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
 
+import org.apache.commons.io.FileUtils;
+
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
 public class MessageBackuperTest{
     
     private MessageBackuper messageBackuper;
@@ -51,17 +57,21 @@ public class MessageBackuperTest{
         messageBackuper.setPath(path);
         assertEquals(path, messageBackuper.getPath());
     }
-        
+     
+     /** NOT STABLE **
+      * note that this test can be improved becase the time stamp is real time so might 
+      * differs to production time stamp
+      */     
      @Test
-     public void testBackupCapability(){
+     public void testBackupCapabilityTimeStamp(){
          File f = null;
          File backupFile = null;
          File backupFolder = null;
          try {
             /* Prepare the to-be-uploaded file*/
-            f = new File("testBackupCapability.txt");
+            f = new File("testBackupCapabilityTimeStamp.txt");
             OutputStream fop = new FileOutputStream(f);
-            String fileContent = "testBackupCapability content";
+            String fileContent = "testBackupCapabilityTimeStamp content";
             if (!f.exists()){    
                 f.createNewFile();
             }
@@ -77,13 +87,77 @@ public class MessageBackuperTest{
             if(!backupFolder.exists()){
                 backupFolder.mkdir();
             }
+            
             messageBackuper.setPath(backupFolder.getPath());
             messageBackuper.manipulate();
             
             /* Check result*/
-            backupFile = new File("backup\\testBackupCapability20170306130001.txt");
-            assertEquals(backupFile.exists(), true);
+            DateTime datetime = new DateTime();
+            DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMddHHmmss");
+            backupFile = new File("backup\\testBackupCapabilityTimeStamp" + datetime.toString(fmt) + ".txt");
+            assertEquals(backupFile.exists(), true);  //for backup isPerformed
+            
+         }catch (Exception e){
+             e.printStackTrace();
+         }finally {
+             try{
+                /* Delete used file and folder*/
+                if (f.exists()){
+                    f.delete();
+                }
 
+                if (backupFile.exists()){
+                    backupFile.delete();
+                }
+                            
+                if (backupFolder.exists()){
+                    backupFolder.delete();
+                }
+             }catch(Exception e){
+                 e.printStackTrace();
+             }
+         }
+     }
+     
+     /** NOT STABLE **
+      * note that this test can be improved becase the time stamp is real time so might 
+      * differs to production time stamp
+      */
+     @Test
+     public void testBackupCapabilitySameContent(){
+         File f = null;
+         File backupFile = null;
+         File backupFolder = null;
+         try {
+            /* Prepare the to-be-uploaded file*/
+            f = new File("testBackupCapabilitySameContent.txt");
+            OutputStream fop = new FileOutputStream(f);
+            String fileContent = "testBackupCapabilitySameContent content";
+            if (!f.exists()){    
+                f.createNewFile();
+            }
+            fop.write(fileContent.getBytes());
+            fop.flush();
+            fop.close();
+            
+            /* Invoke file manipulator */
+            System.out.println("Create and inject file to test: " + f.getPath());
+            messageBackuper.setFile(f);
+            System.out.println("Create backup folder: backup/");
+            backupFolder = new File("backup");
+            if(!backupFolder.exists()){
+                backupFolder.mkdir();
+            }
+            
+            messageBackuper.setPath(backupFolder.getPath());
+            messageBackuper.manipulate();
+            
+            /* Check result*/
+            DateTime datetime = new DateTime();
+            DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMddHHmmss");
+            backupFile = new File("backup\\testBackupCapabilitySameContent" + datetime.toString(fmt) + ".txt");
+            assertEquals(FileUtils.contentEquals(f, backupFile), true);  //for backup isPerformed
+            
          }catch (Exception e){
              e.printStackTrace();
          }finally {
