@@ -63,6 +63,7 @@ public class MessageBackuper implements FileManipulator{
                 backupFile.createNewFile();
                 
                 FileUtils.copyFile(this.getFile(), backupFile);
+                FileUtils.forceDelete(this.getFile());
                 
                 this.mIsSuccess = true;
             }else{
