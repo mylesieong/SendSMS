@@ -140,6 +140,11 @@ public class MessageBackuperTest{
             fop.flush();
             fop.close();
             
+            /*Prepare a copy for content comparation*/
+            File copiedFile = new File("copiedFile.txt");
+            FileUtils.touch(copiedFile);
+            FileUtils.copyFile(f, copiedFile);
+            
             /* Invoke file manipulator */
             System.out.println("Create and inject file to test: " + f.getPath());
             messageBackuper.setFile(f);
@@ -156,7 +161,7 @@ public class MessageBackuperTest{
             DateTime datetime = new DateTime();
             DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMddHHmmss");
             backupFile = new File("backup\\testBackupCapabilitySameContent" + datetime.toString(fmt) + ".txt");
-            assertEquals(FileUtils.contentEquals(f, backupFile), true);  //for backup isPerformed
+            assertEquals(FileUtils.contentEquals(copiedFile, backupFile), true);  //for backup isPerformed
             
          }catch (Exception e){
              e.printStackTrace();
